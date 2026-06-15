@@ -19,18 +19,15 @@ type TeamsResponse = {
 const ApiPoller = ({
 	initialGames,
 	initialTeams,
-	initialStadiums,
 	initialGroups,
 }: {
 	initialGames: Game[];
 	initialTeams: Team[];
-	initialStadiums: Stadium[];
 	initialGroups: Group[];
 }) => {
 	const {
 		setGames,
 		setTeams,
-		setStadiums,
 		setGroups,
 	} = useWorldCupStore();
 
@@ -39,7 +36,6 @@ const ApiPoller = ({
 	useEffect(() => {
 		setGames(appendLocalTimeToGames(initialGames));
 		setTeams(initialTeams);
-		setStadiums(initialStadiums);
 		setGroups(initialGroups);
 
 		const poll = async () => {
@@ -48,12 +44,9 @@ const ApiPoller = ({
 			isPollingRef.current = true;
 
 			try {
-				const [teamsRes, stadiumsRes] =
+				const [teamsRes] =
 					await Promise.all([
 						fetch("/api/teams", {
-							cache: "no-store",
-						}),
-						fetch("/api/stadiums", {
 							cache: "no-store",
 						}),
 					]);
@@ -64,29 +57,20 @@ const ApiPoller = ({
 					);
 				}
 
-				if (!stadiumsRes.ok) {
-					throw new Error(
-						`Stadiums API failed: ${stadiumsRes.status}`
-					);
-				}
-
 				const [
 					{
 						games: gamesData,
 						groups: groupsData,
 						teams: teamsData,
-					},
-					stadiumsData,
+					}
 				] = (await Promise.all([
-					teamsRes.json(),
-					stadiumsRes.json(),
-				])) as [TeamsResponse, Stadium[]];
+					teamsRes.json()
+				])) as [TeamsResponse];
 
 				if (
 					!Array.isArray(gamesData) ||
 					!Array.isArray(groupsData) ||
-					!Array.isArray(teamsData) ||
-					!Array.isArray(stadiumsData)
+					!Array.isArray(teamsData)
 				) {
 					throw new Error(
 						"Invalid polling response"
@@ -98,7 +82,6 @@ const ApiPoller = ({
 				);
 				setTeams(teamsData);
 				setGroups(groupsData);
-				setStadiums(stadiumsData);
 			} catch (error) {
 				console.error(
 					"Polling failed:",
@@ -113,7 +96,7 @@ const ApiPoller = ({
 
 		const interval = setInterval(
 			poll,
-			60 * 1000
+			3 * 60 * 1000
 		);
 
 		return () => {
@@ -122,11 +105,9 @@ const ApiPoller = ({
 	}, [
 		initialGames,
 		initialTeams,
-		initialStadiums,
 		initialGroups,
 		setGames,
 		setTeams,
-		setStadiums,
 		setGroups,
 	]);
 

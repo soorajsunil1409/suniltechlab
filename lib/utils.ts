@@ -3,6 +3,7 @@ import { clsx, type ClassValue } from "clsx"
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useMemo } from "react";
 import { twMerge } from "tailwind-merge"
+import { MAP_BOUNDS } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs))
@@ -82,3 +83,22 @@ export const appendLocalTimeToGames = (
   });
 };
 
+
+export const projectToMap = (
+	lat: number,
+	lon: number
+) => {
+	const left =
+		((lon - MAP_BOUNDS.lonMin) /
+			(MAP_BOUNDS.lonMax -
+				MAP_BOUNDS.lonMin)) *
+		100;
+
+	const top =
+		((MAP_BOUNDS.latMax - lat) /
+			(MAP_BOUNDS.latMax -
+				MAP_BOUNDS.latMin)) *
+		100;
+
+	return { left, top };
+}

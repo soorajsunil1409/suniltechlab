@@ -1,228 +1,218 @@
 "use client";
 
 import Image from "next/image";
-import { MapPin } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Stadium } from "@/types/worldCupTypes";
+import { STADIUMS } from "@/lib/constants";
+import { projectToMap } from "@/lib/utils";
 
-const STADIUM_META: Record<
-	string,
-	{
-		x: number;
-		y: number;
-	}
-> = {
-	"9": { x: 80.03, y: 63.1 },
-	"11": { x: 77.3, y: 65.46 },
-	"10": { x: 76.5, y: 67 },
-	"7": { x: 67.1, y: 75.64 },
-	"8": { x: 73.1, y: 84.6 },
-	"12": { x: 71.6, y: 62.4 },
-	"6": { x: 55, y: 69.24 },
-	"4": { x: 50.89, y: 76.52 },
-	"5": { x: 52.27, y: 81.1 },
-	"3": { x: 46.24, y: 85.22 },
-	"1": { x: 46.5, y: 93.2 },
-	"2": { x: 40.34, y: 90.88 },
-	"16": { x: 26.95, y: 71.26 },
-	"15": { x: 23.86, y: 65.06 },
-	"14": { x: 29.63, y: 53.19 },
-	"13": { x: 29.22, y: 50.77 },
-};
-
-interface FullStadium extends Stadium {
-	x: number;
-	y: number;
-}
-
-export default function StadiumMap({
-	stadiums,
-}: {
-	stadiums: Stadium[];
-}) {
-	const mappedStadiums = useMemo(
-		() =>
-			stadiums
-				.map((stadium) => {
-					const meta =
-						STADIUM_META[stadium.id];
-
-					if (!meta) return null;
-
-					return {
-						...stadium,
-						...meta,
-					};
-				})
-				.filter(
-					Boolean
-				) as FullStadium[],
-		[stadiums]
-	);
-
+export default function StadiumMap() {
 	const [selected, setSelected] =
-		useState<FullStadium | null>(
-			mappedStadiums[0] ?? null
-		);
+		useState<Stadium | null>(null);
 
-	if (!mappedStadiums.length)
+	const [hovered, setHovered] =
+		useState<string | null>(null);
+
+	const stadiums = useMemo(() => {
+		return STADIUMS
+	}, [STADIUMS]);
+
+	useEffect(() => {
+		if (
+			!selected &&
+			stadiums.length > 0
+		) {
+			setSelected(stadiums[0]);
+		}
+	}, [stadiums, selected]);
+
+	if (!stadiums.length) {
 		return null;
+	}
 
 	return (
 		<div className="grid gap-6 lg:grid-cols-[1fr_450px]">
-			{/* MAP */}
-			<div className="overflow-hidden rounded-3xl border border-neutral-200 bg-gradient-to-br from-white to-neutral-50 p-4 md:p-6 shadow-lg">
-				<div className="mb-4 md:mb-6 bg-white p-4 rounded-xl">
-					<h2 className="text-xl md:text-2xl font-bold">
-						Host Cities Map
-					</h2>
+			<div className="rounded-3xl border border-neutral-200 bg-white shadow-lg">
+	<div className="p-6">
+		<h2 className="text-2xl font-bold">
+			Host Cities Map
+		</h2>
 
-					<p className="text-sm text-neutral-500">
-						Tap a marker to view stadium details.
-					</p>
-				</div>
+		<p className="mt-1 text-sm text-neutral-500">
+			Click a marker to view stadium details
+		</p>
+	</div>
 
-				<div className="relative mx-auto h-[500px] w-full overflow-hidden rounded-2xl bg-neutral-100">
-					{/* MAP */}
-					<div className="absolute inset-0">
-						<Image
-							src="/stadiums/map.svg"
-							alt="North America"
-							fill
-							priority
-							className="object-contain scale-[1.5] -translate-y-30"
-						/>
-					</div>
+	<div className="p-4">
+		<div
+			className="relative mx-auto w-full max-w-7xl"
+			style={{
+				aspectRatio: "1536 / 726",
+			}}
+		>
+			<Image
+				src="/stadiums/map.svg"
+				alt="North America"
+				fill
+				priority
+				className="pointer-events-none"
+			/>
 
-					{/* MARKERS */}
-					<div className="absolute inset-0">
-						{mappedStadiums.map((stadium) => (
+			{stadiums.map((stadium) => {
+				const { left, top } =
+					projectToMap(
+						stadium.lat,
+						stadium.lon
+					);
+
+				return (
+					<div
+						key={stadium.id}
+						onClick={() =>
+							setSelected(stadium)
+						}
+						onMouseEnter={() =>
+							setHovered(stadium.id)
+						}
+						onMouseLeave={() =>
+							setHovered(null)
+						}
+						className={`group absolute cursor-pointer ${
+							hovered === stadium.id
+								? "z-[9999]"
+								: "z-10"
+						}`}
+						style={{
+							left: `${left}%`,
+							top: `${top}%`,
+							transform:
+								"translate(-50%, -50%)",
+						}}
+					>
+						<div className="relative">
 							<div
-								key={stadium.id}
-								onClick={() => setSelected(stadium)}
-								className={`group absolute cursor-pointer ${selected?.id === stadium.id
-									? "z-[9999]"
-									: "z-10 hover:z-[9999]"
-									}`}
-								style={{
-									left: `${stadium.x}%`,
-									top: `${stadium.y}%`,
-									transform: "translate(-50%, -50%)",
-								}}
-							>
-								{/* Glow */}
-								{/* <div
-									className={`absolute left-1/2 top-1/2 -z-10 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full blur-md transition-all ${selected?.id === stadium.id
-										? "bg-red-500/60"
-										: "bg-red-500/20"
-										}`}
-								/> */}
+								className={`absolute inset-0 rounded-full animate-ping ${
+									selected?.id ===
+									stadium.id
+										? "bg-red-500/50"
+										: "bg-red-400/30"
+								}`}
+							/>
 
-								{/* Marker */}
-								{/* <MapPin
-									className={`relative transition-all duration-200 ${selected?.id === stadium.id
-										? "size-6 scale-125 text-red-600"
-										: "size-5 text-red-500 hover:scale-110"
-										}`}
-									strokeWidth={2.5}
-									fill={
-										selected?.id === stadium.id
-											? "currentColor"
-											: "white"
+							<div
+								className={`relative h-3 w-3 rounded-full border-2 border-white shadow-lg transition-all ${
+									selected?.id ===
+									stadium.id
+										? "scale-125 bg-red-600"
+										: "bg-red-500"
+								}`}
+							/>
+						</div>
+
+						<div
+							className={`pointer-events-none absolute left-1/2 top-5 z-[10000] w-56 -translate-x-1/2 overflow-hidden rounded-xl border bg-white shadow-2xl transition-all duration-150 ${
+								hovered === stadium.id
+									? "visible opacity-100"
+									: "invisible opacity-0"
+							}`}
+						>
+							<Image
+								src={`/stadiums/${stadium.id}.jpg`}
+								alt={
+									stadium.name_en
+								}
+								width={300}
+								height={180}
+								className="h-28 w-full object-cover"
+							/>
+
+							<div className="p-3">
+								<p className="font-semibold">
+									{
+										stadium.name_en
 									}
-								/> */}
-								<div className="size-0.5 bg-red-400 rounded-full">
+								</p>
 
-								</div>
+								<p className="text-xs text-neutral-500">
+									{
+										stadium.city_en
+									}
+									,{" "}
+									{
+										stadium.country_en
+									}
+								</p>
 
-								{/* Tooltip */}
-								<div className="pointer-events-none absolute left-1/2 top-7 z-[10000] hidden w-56 -translate-x-1/2 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-2xl group-hover:block">
-									<Image
-										src={`/stadiums/${stadium.id}.jpg`}
-										alt={stadium.name_en}
-										width={300}
-										height={180}
-										className="h-28 w-full object-cover"
-									/>
-
-									<div className="p-3">
-										<p className="line-clamp-1 text-sm font-semibold">
-											{stadium.name_en}
-										</p>
-
-										<p className="mt-1 text-xs text-neutral-500">
-											{stadium.city_en},{" "}
-											{stadium.country_en}
-										</p>
-
-										<p className="mt-2 text-xs font-medium text-red-500">
-											Capacity:{" "}
-											{stadium.capacity.toLocaleString()}
-										</p>
-									</div>
-								</div>
+								<p className="mt-2 text-xs font-medium text-red-500">
+									Capacity:{" "}
+									{stadium.capacity.toLocaleString()}
+								</p>
 							</div>
-						))}
+						</div>
 					</div>
-				</div>
-			</div>
+				);
+			})}
+		</div>
+	</div>
+</div>
 
-			{/* DETAILS PANEL */}
-			<div className="overflow-hidden rounded-3xl border bg-white shadow-lg lg:sticky lg:top-6 lg:h-fit">
+			<div className="overflow-hidden rounded-3xl border bg-white shadow-lg">
 				{selected && (
 					<>
-						<div className="relative h-52 md:h-72 overflow-hidden">
+						<div className="relative h-72">
 							<Image
 								src={`/stadiums/${selected.id}.jpg`}
-								alt={selected.name_en}
+								alt={
+									selected.name_en
+								}
 								fill
 								className="object-cover"
 							/>
 
-							<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+							<div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
 
-							<div className="absolute bottom-4 left-4 md:bottom-5 md:left-5">
-								<h2 className="text-xl md:text-3xl font-bold text-white">
-									{selected.name_en}
+							<div className="absolute bottom-5 left-5">
+								<h2 className="text-3xl font-bold text-white">
+									{
+										selected.name_en
+									}
 								</h2>
 
-								<p className="text-sm md:text-base text-white/80">
-									{selected.city_en}, {selected.country_en}
+								<p className="text-white/80">
+									{
+										selected.city_en
+									}
+									,{" "}
+									{
+										selected.country_en
+									}
 								</p>
 							</div>
 						</div>
 
-						<div className="space-y-4 p-4 md:p-6">
-							<div className="grid grid-cols-2 gap-3">
-								<div className="rounded-2xl bg-neutral-50 p-3 md:p-4">
+						<div className="space-y-4 p-6">
+							<div className="grid grid-cols-2 gap-4">
+								<div className="rounded-2xl bg-neutral-100 p-4">
 									<p className="text-xs uppercase text-neutral-500">
 										Capacity
 									</p>
 
-									<p className="mt-1 text-lg md:text-2xl font-bold">
+									<p className="mt-1 text-2xl font-bold">
 										{selected.capacity.toLocaleString()}
 									</p>
 								</div>
 
-								<div className="rounded-2xl bg-neutral-50 p-3 md:p-4">
+								<div className="rounded-2xl bg-neutral-100 p-4">
 									<p className="text-xs uppercase text-neutral-500">
 										Country
 									</p>
 
-									<p className="mt-1 text-lg md:text-2xl font-bold">
-										{selected.country_en}
+									<p className="mt-1 text-2xl font-bold">
+										{
+											selected.country_en
+										}
 									</p>
 								</div>
-							</div>
-
-							<div>
-								<p className="text-xs uppercase text-neutral-500">
-									Host City
-								</p>
-
-								<p className="mt-1 text-base md:text-lg font-semibold">
-									{selected.city_en}
-								</p>
 							</div>
 
 							<div>
@@ -230,8 +220,10 @@ export default function StadiumMap({
 									FIFA Venue Name
 								</p>
 
-								<p className="mt-1 text-base md:text-lg font-semibold">
-									{selected.fifa_name}
+								<p className="mt-1 text-lg font-semibold">
+									{
+										selected.fifa_name
+									}
 								</p>
 							</div>
 						</div>

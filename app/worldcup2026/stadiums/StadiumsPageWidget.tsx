@@ -1,43 +1,40 @@
 "use client";
 
 import { useMemo } from "react";
-import { useWorldCupStore } from "@/store/worldCupStore";
-import Image from "next/image";
 import StadiumMap from "./components/StadiumMap";
+import { STADIUMS } from "@/lib/constants";
 
 export default function StadiumsPage() {
-	const { stadiums } = useWorldCupStore();
-
 	const sortedStadiums = useMemo(
 		() =>
-			[...stadiums].sort(
+			[...STADIUMS].sort(
 				(a, b) => b.capacity - a.capacity
 			),
-		[stadiums]
+		[STADIUMS]
 	);
 
 	const totalCapacity = useMemo(
 		() =>
-			stadiums.reduce(
+			STADIUMS.reduce(
 				(sum, stadium) =>
 					sum + stadium.capacity,
 				0
 			),
-		[stadiums]
+		[STADIUMS]
 	);
 
 	const averageCapacity = useMemo(
 		() =>
-			stadiums.length
+			STADIUMS.length
 				? Math.round(
 					totalCapacity /
-					stadiums.length
+					STADIUMS.length
 				)
 				: 0,
-		[stadiums, totalCapacity]
+		[STADIUMS, totalCapacity]
 	);
 
-	if (!stadiums.length) {
+	if (!STADIUMS.length) {
 		return (
 			<div className="mx-auto flex max-w-7xl flex-col gap-6 p-6">
 				<div className="flex flex-col items-center gap-3 rounded-3xl border bg-white p-12 shadow-sm">
@@ -54,11 +51,9 @@ export default function StadiumsPage() {
 		);
 	}
 
-	const largestStadium = sortedStadiums[0];
-
 	return (
 		<div className="mx-auto flex max-w-7xl flex-col gap-8 p-6">
-			<StadiumMap stadiums={sortedStadiums} />
+			<StadiumMap />
 		</div>
 	);
 }

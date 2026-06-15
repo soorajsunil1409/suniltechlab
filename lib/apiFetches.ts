@@ -1,5 +1,5 @@
 import { Game, Group, Stadium, Team } from "@/types/worldCupTypes";
-import { STADIUM_TIMEZONES } from "./stadiumTimezones";
+import { STADIUM_TIMEZONES } from "./constants";
 import { formatToUTC } from "./utils";
 
 export const fetchGames: () => Promise<Game[]> = async () => {
