@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { appendLocalTimeToGames, formatToUTC } from "@/lib/utils";
+import { useEffect, useRef } from "react";
+import { appendLocalTimeToGames } from "@/lib/utils";
 import { useWorldCupStore } from "@/store/worldCupStore";
 import {
 	Game,
@@ -9,7 +9,12 @@ import {
 	Stadium,
 	Team,
 } from "@/types/worldCupTypes";
-import { fetchGames, fetchGroups, fetchStadiums, fetchTeams } from "@/lib/apiFetches";
+
+type TeamsResponse = {
+	games: Game[];
+	groups: Group[];
+	teams: Team[];
+};
 
 const ApiPoller = ({
 	initialGames,
@@ -29,6 +34,8 @@ const ApiPoller = ({
 		setGroups,
 	} = useWorldCupStore();
 
+	const isPollingRef = useRef(false);
+
 	useEffect(() => {
 		setGames(appendLocalTimeToGames(initialGames));
 		setTeams(initialTeams);
@@ -36,35 +43,69 @@ const ApiPoller = ({
 		setGroups(initialGroups);
 
 		const poll = async () => {
+			if (isPollingRef.current) return;
+
+			isPollingRef.current = true;
+
 			try {
+				const [teamsRes, stadiumsRes] =
+					await Promise.all([
+						fetch("/api/teams", {
+							cache: "no-store",
+						}),
+						fetch("/api/stadiums", {
+							cache: "no-store",
+						}),
+					]);
+
+				if (!teamsRes.ok) {
+					throw new Error(
+						`Teams API failed: ${teamsRes.status}`
+					);
+				}
+
+				if (!stadiumsRes.ok) {
+					throw new Error(
+						`Stadiums API failed: ${stadiumsRes.status}`
+					);
+				}
+
 				const [
-					gamesData,
+					{
+						games: gamesData,
+						groups: groupsData,
+						teams: teamsData,
+					},
 					stadiumsData,
-					groupsData,
-				] = await Promise.all([
-					fetchGames(),
-					fetchStadiums(),
-					fetchGroups(),
-				]);
+				] = (await Promise.all([
+					teamsRes.json(),
+					stadiumsRes.json(),
+				])) as [TeamsResponse, Stadium[]];
 
-				const teamsData = await fetchTeams(
-					groupsData,
-					gamesData
-				);
-
-				const sortedGames = [...gamesData].sort(
-					(a, b) => a.kickoff_utc - b.kickoff_utc
-				);
+				if (
+					!Array.isArray(gamesData) ||
+					!Array.isArray(groupsData) ||
+					!Array.isArray(teamsData) ||
+					!Array.isArray(stadiumsData)
+				) {
+					throw new Error(
+						"Invalid polling response"
+					);
+				}
 
 				setGames(
-					appendLocalTimeToGames(sortedGames)
+					appendLocalTimeToGames(gamesData)
 				);
-
 				setTeams(teamsData);
-				setStadiums(stadiumsData);
 				setGroups(groupsData);
+				setStadiums(stadiumsData);
 			} catch (error) {
-				console.error("Polling failed:", error);
+				console.error(
+					"Polling failed:",
+					error
+				);
+			} finally {
+				isPollingRef.current = false;
 			}
 		};
 
@@ -72,10 +113,12 @@ const ApiPoller = ({
 
 		const interval = setInterval(
 			poll,
-			30 * 1000
+			60 * 1000
 		);
 
-		return () => clearInterval(interval);
+		return () => {
+			clearInterval(interval);
+		};
 	}, [
 		initialGames,
 		initialTeams,

@@ -8,17 +8,10 @@ export default async function WorldCupLayout({
 }: {
 	children: React.ReactNode;
 }) {
-	const [initialGames, initialStadiums, initialGroups] =
-		await Promise.all([
-			fetchGames(),
-			fetchStadiums(),
-			fetchGroups(),
-		]);
-
-	const initialTeams = await fetchTeams(
-		initialGroups,
-		initialGames
-	);
+	const initialGames = await fetchGames();
+	const initialGroups = await fetchGroups();
+	const initialTeams = await fetchTeams(initialGroups, initialGames);
+	const initialStadiums = await fetchStadiums();
 
 	return (
 		<>

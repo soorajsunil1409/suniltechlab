@@ -13,6 +13,7 @@ export const fetchGames: () => Promise<Game[]> = async () => {
 			},
 		});
 
+
 		const data = await res.json();
 
 		const fetchedGames: Game[] = Array.isArray(data.games) ? data.games : [];
@@ -43,8 +44,6 @@ export const fetchGames: () => Promise<Game[]> = async () => {
 			(a, b) => a.kickoff_utc - b.kickoff_utc
 		);
 
-		// console.log(sortedGames);
-
 		return sortedGames;
 	} catch (error) {
 		console.error("Error fetching games:", error);
@@ -74,10 +73,7 @@ export const fetchStadiums: () => Promise<Stadium[]> = async () => {
 	}
 };
 
-export const fetchTeams = async (
-	groups: Group[] = [],
-	games: Game[] = []
-): Promise<Team[]> => {
+export const fetchTeams: (groups: Group[], games: Game[]) => Promise<Team[]> = async (groups, games) => {
 	try {
 		const res = await fetch(
 			`${process.env.NEXT_PUBLIC_FIFA_WORLD_CUP_API_KEY}/get/teams`,
@@ -212,7 +208,10 @@ export const fetchTeams = async (
 			return acc;
 		}, []);
 
-		return teams.sort((a, b) => b.pts - a.pts);
+		const sortedTeams = teams.sort((a, b) => b.pts - a.pts);
+
+		// console.log(groups, games);
+		return sortedTeams;
 	} catch (error) {
 		console.error("Error fetching teams:", error);
 		return [];
@@ -229,6 +228,7 @@ export const fetchGroups: () => Promise<Group[]> = async () => {
 				"Authorization": `Bearer ${process.env.NEXT_PUBLIC_TOKEN}`,
 			},
 		});
+
 		const data = await res.json();
 
 		const fetchedGroups: Group[] = Array.isArray(data.groups) ? data.groups : [];

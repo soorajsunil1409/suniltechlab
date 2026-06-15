@@ -86,7 +86,7 @@ export default function StadiumMap({
 					{/* MAP */}
 					<div className="absolute inset-0">
 						<Image
-							src="/stadiums/map_recolored.svg"
+							src="/stadiums/map.svg"
 							alt="North America"
 							fill
 							priority
@@ -94,7 +94,6 @@ export default function StadiumMap({
 						/>
 					</div>
 
-					{/* MARKERS */}
 					{/* MARKERS */}
 					<div className="absolute inset-0">
 						{mappedStadiums.map((stadium) => (
