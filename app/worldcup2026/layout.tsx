@@ -1,16 +1,21 @@
 // app/worldcup2026/layout.tsx
 
-import { fetchGames, fetchGroups, fetchTeams } from "@/lib/apiFetches";
 import ApiPoller from "@/components/ApiPoller";
+import { getSnapshot } from "@/lib/getSnapshot";
+import { bootstrap } from "@/lib/bootstrap";
+
+bootstrap();
 
 export default async function WorldCupLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
-	const initialGames = await fetchGames();
-	const initialGroups = await fetchGroups();
-	const initialTeams = await fetchTeams(initialGroups, initialGames);
+	const snapshot = await getSnapshot();
+
+	const initialGames = snapshot?.games || [];
+	const initialGroups = snapshot?.groups || [];
+	const initialTeams = snapshot?.teams || [];
 
 	return (
 		<>

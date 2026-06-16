@@ -6,11 +6,10 @@ import { useWorldCupStore } from "@/store/worldCupStore";
 import {
 	Game,
 	Group,
-	Stadium,
 	Team,
 } from "@/types/worldCupTypes";
 
-type TeamsResponse = {
+type SnapshotResponse = {
 	games: Game[];
 	groups: Group[];
 	teams: Team[];
@@ -34,7 +33,9 @@ const ApiPoller = ({
 	const isPollingRef = useRef(false);
 
 	useEffect(() => {
-		setGames(appendLocalTimeToGames(initialGames));
+		setGames(
+			appendLocalTimeToGames(initialGames)
+		);
 		setTeams(initialTeams);
 		setGroups(initialGroups);
 
@@ -44,28 +45,25 @@ const ApiPoller = ({
 			isPollingRef.current = true;
 
 			try {
-				const [teamsRes] =
-					await Promise.all([
-						fetch("/api/teams", {
-							cache: "no-store",
-						}),
-					]);
+				const response = await fetch(
+					"/api/snapshot",
+					{
+						cache: "no-store",
+					}
+				);
 
-				if (!teamsRes.ok) {
+				if (!response.ok) {
 					throw new Error(
-						`Teams API failed: ${teamsRes.status}`
+						`Snapshot API failed: ${response.status}`
 					);
 				}
 
-				const [
-					{
-						games: gamesData,
-						groups: groupsData,
-						teams: teamsData,
-					}
-				] = (await Promise.all([
-					teamsRes.json()
-				])) as [TeamsResponse];
+				const {
+					games: gamesData,
+					groups: groupsData,
+					teams: teamsData,
+				} =
+					(await response.json()) as SnapshotResponse;
 
 				if (
 					!Array.isArray(gamesData) ||
@@ -73,25 +71,28 @@ const ApiPoller = ({
 					!Array.isArray(teamsData)
 				) {
 					throw new Error(
-						"Invalid polling response"
+						"Invalid snapshot response"
 					);
 				}
 
 				setGames(
-					appendLocalTimeToGames(gamesData)
+					appendLocalTimeToGames(
+						gamesData
+					)
 				);
-				setTeams(teamsData);
+
 				setGroups(groupsData);
+				setTeams(teamsData);
 			} catch (error) {
 				console.error(
-					"Polling failed:",
+					"Snapshot polling failed:",
 					error
 				);
 			} finally {
 				isPollingRef.current = false;
 			}
 		};
-
+		
 		poll();
 
 		const interval = setInterval(
