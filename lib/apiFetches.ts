@@ -47,7 +47,8 @@ export const fetchGames: () => Promise<Game[]> = async () => {
 		return sortedGames;
 	} catch (error) {
 		console.error("Error fetching games:", error);
-		return [];
+		
+		throw error;
 	}
 };
 
@@ -69,7 +70,8 @@ export const fetchStadiums: () => Promise<Stadium[]> = async () => {
 		return fetchedStadiums;
 	} catch (error) {
 		console.error("Error fetching stadiums:", error);
-		return [];
+
+		throw error;
 	}
 };
 
@@ -214,7 +216,8 @@ export const fetchTeams: (groups: Group[], games: Game[]) => Promise<Team[]> = a
 		return sortedTeams;
 	} catch (error) {
 		console.error("Error fetching teams:", error);
-		return [];
+
+		throw error;
 	}
 };
 
@@ -236,6 +239,7 @@ export const fetchGroups: () => Promise<Group[]> = async () => {
 		return fetchedGroups;
 	} catch (error) {
 		console.error("Error fetching groups:", error);
-		return [];
+
+		throw error;
 	}
 };

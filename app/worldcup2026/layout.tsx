@@ -2,9 +2,6 @@
 
 import ApiPoller from "@/components/ApiPoller";
 import { getSnapshot } from "@/lib/getSnapshot";
-import { bootstrap } from "@/lib/bootstrap";
-
-bootstrap();
 
 export default async function WorldCupLayout({
 	children,
