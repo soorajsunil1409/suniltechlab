@@ -7,11 +7,12 @@ import GroupTable from "../../../../components/GroupTable";
 import { useWorldCupStore } from "@/store/worldCupStore";
 import { useEffect, useState } from "react";
 import BackButton from "../../../../components/BackButton";
+import { STADIUMS } from "@/lib/constants";
 
 const MatchPageWidget = () => {
 	const { matchId } = useParams();
 
-	const {games, stadiums, teams, groups} = useWorldCupStore();
+	const {games, teams} = useWorldCupStore();
 
 
 	const [game, setGame] = useState<Game | null>(null);
@@ -24,7 +25,7 @@ const MatchPageWidget = () => {
 			(g) => String(g.id) === String(matchId)
 		);
 
-		const foundStadium = stadiums.find(
+		const foundStadium = STADIUMS.find(
 			(s) => s.id === foundGame?.stadium_id
 		);
 

@@ -9,12 +9,10 @@ const FixtureCardGroup = ({
   date,
   matches,
   teams,
-  stadiums,
 }: {
   date: string;
   matches: Game[];
   teams: Team[];
-  stadiums: Stadium[];
 }) => {
   const [open, setOpen] = useState(true);
 
@@ -76,7 +74,6 @@ const FixtureCardGroup = ({
                 key={game.id}
                 game={game}
                 teams={teams}
-                stadiums={stadiums}
                 home={home}
                 away={away}
               />

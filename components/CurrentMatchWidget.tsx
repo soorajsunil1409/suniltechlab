@@ -1,4 +1,3 @@
-import { useWorldCupStore } from "@/store/worldCupStore";
 import { Game, Team } from "@/types/worldCupTypes";
 import Image from "next/image";
 import { useEffect, useState } from "react";

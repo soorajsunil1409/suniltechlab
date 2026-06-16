@@ -1,5 +1,6 @@
 "use client";
 
+import { STADIUMS } from "@/lib/constants";
 import { Game, Stadium, Team } from "@/types/worldCupTypes";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -7,13 +8,11 @@ import { useRouter } from "next/navigation";
 const FixtureCard = ({
 	game,
 	teams,
-	stadiums,
 	home,
 	away,
 }: {
 	game: Game;
 	teams: Team[];
-	stadiums: Stadium[];
 	home: string;
 	away: string;
 }) => {
@@ -29,7 +28,7 @@ const FixtureCard = ({
 		final: "Final",
 	};
 
-	const stadium = stadiums.find(
+	const stadium = STADIUMS.find(
 		(s) => s.id === game.stadium_id
 	);
 

@@ -96,7 +96,7 @@ const ApiPoller = ({
 
 		const interval = setInterval(
 			poll,
-			3 * 60 * 1000
+			30 * 1000
 		);
 
 		return () => {

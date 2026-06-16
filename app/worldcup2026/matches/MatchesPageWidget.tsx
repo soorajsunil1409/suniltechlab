@@ -6,9 +6,10 @@ import { useWorldCupStore } from "@/store/worldCupStore";
 import { Filter, Search } from "lucide-react";
 import BackButton from "@/components/BackButton";
 import FixtureSection from "@/components/FixtureSection";
+import { STADIUMS } from "@/lib/constants";
 
 const MatchesPageWidget = () => {
-	const { games, teams, stadiums } = useWorldCupStore();
+	const { games, teams } = useWorldCupStore();
 	const [search, setSearch] = useState<string>("");
 	const [filter, setFilter] = useState("all");
 
@@ -17,10 +18,7 @@ const MatchesPageWidget = () => {
 		[teams]
 	);
 
-	const stadiumsMap = useMemo(
-		() => new Map(stadiums.map((stadium) => [stadium.id, stadium.name_en])),
-		[stadiums]
-	);
+	const stadiumsMap = STADIUMS.map((stadium) => [stadium.id, stadium.name_en]);
 
 	const filteredGames = useMemo(() => {
 		const searchTerm = search.toLowerCase();
@@ -28,7 +26,7 @@ const MatchesPageWidget = () => {
 		return games.filter((game) => {
 			const homeTeam = teamsMap.get(game.home_team_id) ?? "";
 			const awayTeam = teamsMap.get(game.away_team_id) ?? "";
-			const stadium = stadiumsMap.get(game.stadium_id) ?? "";
+			const stadium = stadiumsMap.find(([id]) => id === game.stadium_id)?.[1] ?? "";
 
 			const matchesSearch =
 				homeTeam.toLowerCase().includes(searchTerm) ||
@@ -43,7 +41,7 @@ const MatchesPageWidget = () => {
 
 			return matchesSearch && matchesFilter;
 		});
-	}, [games, teamsMap, stadiumsMap, search, filter]);
+	}, [games, teamsMap, search, filter]);
 
 	const groupedGames = useMemo(() => {
 		if (!Array.isArray(filteredGames)) return {};
@@ -119,7 +117,7 @@ const MatchesPageWidget = () => {
 					</div>
 				</div>
 			</div>
-			<FixtureSection games={filteredGames} teams={teams} stadiums={stadiums} groupedGames={groupedGames} />
+			<FixtureSection games={filteredGames} teams={teams} groupedGames={groupedGames} />
 		</div>
 	)
 }
