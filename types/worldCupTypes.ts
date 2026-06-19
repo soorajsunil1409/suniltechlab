@@ -36,7 +36,6 @@ export interface Game {
 	timezone: string;
 	kickoff_local: string;
 	kickoff_utc: number;
-	group_date: string;
 }
 
 export interface Team {
